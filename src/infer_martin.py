@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path as Path2
+import json
 
 import torch
 from path import Path
@@ -35,6 +36,9 @@ def main():
         if args.plot:
             visualize_and_plot(img, aabbs)
 
+        img_out = Path2( args.outdir / f'image{i}' )
+        img_out.mkdir(parents=True, exist_ok=True)
+
         # Normalise
         img_min, img_max = img.min(), img.max()
         img = ( img - img_min ) / ( img_max - img_min )
@@ -46,10 +50,22 @@ def main():
             aabb_rounded = aabb.enlarge_to_int_grid()
             print('save:', aabb_rounded)
 
+            nr_out = img_out / f'nr_{ii}'
+            nr_out.mkdir(parents=True, exist_ok=True)
+
+            coordinates = {
+                'ymin': int(aabb_rounded.ymin),
+                'ymax': int(aabb_rounded.ymax),
+                'xmin': int(aabb_rounded.xmin),
+                'xmax': int(aabb_rounded.xmax),
+            }
+            with open(nr_out / 'coords.json', 'w') as ff:
+                json.dump(coordinates, ff, indent=4)
+
             img_cropped = img[int(aabb_rounded.ymin):int(aabb_rounded.ymax),
                               int(aabb_rounded.xmin):int(aabb_rounded.xmax)]
 
-            cv2.imwrite(str( args.outdir / f'image{i}_nr{ii}.jpg' ), img_cropped)
+            cv2.imwrite(str( nr_out / 'pic.jpg' ), img_cropped)
 
 
 if __name__ == '__main__':
