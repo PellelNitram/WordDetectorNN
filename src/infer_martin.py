@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--images-path', required=True, type=lambda p: Path2(p).absolute())
     parser.add_argument('--outdir', required=True, type=lambda p: Path2(p).absolute())
     parser.add_argument('--plot', action='store_true')
+    parser.add_argument('--silent', action='store_true')
     args = parser.parse_args()
 
     net = WordDetectorNet()
@@ -43,12 +44,15 @@ def main():
         img_min, img_max = img.min(), img.max()
         img = ( img - img_min ) / ( img_max - img_min )
         img *= 255
-        print(type(img), img.shape)
-        print(img.min(), img.max())
+
+        if not args.silent:
+            print(f'Image: {i} ( resolution={img.shape} )')
 
         for ii, aabb in enumerate(aabbs):
             aabb_rounded = aabb.enlarge_to_int_grid()
-            print('save:', aabb_rounded)
+
+            if not args.silent:
+                print('    Save word:', aabb_rounded)
 
             nr_out = img_out / f'nr_{ii}'
             nr_out.mkdir(parents=True, exist_ok=True)
